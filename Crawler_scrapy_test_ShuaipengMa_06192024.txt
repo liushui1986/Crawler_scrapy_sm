@@ -1,0 +1,24 @@
+import scrapy
+
+class MySpider_sm(scrapy.Spider):
+    name = 'myspider_sm'
+    allowed_domains = ['toscrape.com/']
+    #head = "https://books.toscrape.com/catalogue/"
+    start_urls = ['https://books.toscrape.com/catalogue/page-6.html',]
+
+    def parse(self, response):
+        print(response.xpath('//article[@class="product_pod"]'))
+        for container in response.xpath('//article[@class="product_pod"]'):
+            image_link = response.xpath('.//div[@class="image_container"]/a/img/@src').get()
+            price = container.xpath('.//p[@class="price_color"]/text()').get('').strip()
+            href = container.xpath('.//div[@class="image_container"]/a/@href').get()
+            title = container.xpath('.//h3/a/text()').get()
+            yield {'image_link' : image_link,
+                   'price' : price,
+                   'link' : href,
+                   'title' : title}
+
+from scrapy.crawler import CrawlerProcess
+process = CrawlerProcess(settings={'FEEDS':{'output6_06192024.csv':{'format':'csv'}}})
+process.crawl(MySpider_sm)
+process.start()
